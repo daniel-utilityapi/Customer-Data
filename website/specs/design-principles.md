@@ -25,6 +25,10 @@ principles that help guide our choices as a working group.
 * [Principle 3: Be Realistic](#be-realistic)
   * [Don't assume a motivated implementer](#dont-assume-motivated-implementer)
   * [Create materials and guidance for regulators](#regulatory-guidance)
+* [Principle 4: Be Adaptable](#be-adaptable)
+  * [Build in extensibility](#build-in-extensibility)
+  * [Encourage feedback and contributions](#encourage-feedback)
+  * [Regularly review and update](#regularly-review-and-update)
 
 ---
 
@@ -54,7 +58,7 @@ so that users can directly link to the specific part that they want to reference
 ### Make ample complementary documentation and materials <a id="ample-documentation" href="#ample-documentation" class="permalink">🔗</a>
 
 By definition, our specifications must be comprehensive and, well, _specific_.
-This unfortunately means that the specifications themselves are complex and a
+This unfortunately means that the specifications themselves are complex and are
 probably not the most immediately readable thing for a new user.
 
 So, in addition to publishing our official specifications, we must make an effort
@@ -70,7 +74,7 @@ with how the various APIs, data models, and behaviors are structured. We want
 this initial exploring experience to be intuitive and require minimal time to
 get a basic understanding of how things work.
 
-To aide in that effort, we will be preferring simple, easy-to-understand, and
+To aid in that effort, we will be preferring simple, easy-to-understand, and
 human-readable field names and enumerations in our data models and API endpoints.
 This strategy prevents new users during their initial exploration from constantly
 having to go back and look up what various values mean. A new user should not
@@ -154,7 +158,7 @@ suites that we will maintain.
 
 ## Principle 3: Be Realistic <a id="be-realistic" href="#be-realistic" class="permalink">🔗</a>
 
-The carbon accounting and energy industries are a huge, complicated, and
+The carbon accounting and energy industries are huge, complicated, and
 have a large diversity of regulatory constructs and business models.
 Sometimes, major groups and incentives in these industries will not
 necessarily align with our goals and [Use Cases]({{ '/use-cases' | relative_url }}).
@@ -202,3 +206,37 @@ This category is similar the first design principle's guideline
 of [creating ample complementary documentation](#ample-documentation),
 only for the purpose of increasing accessibility for regulators and
 policy makers.
+
+---
+
+## Principle 4: Be Adaptable <a id="be-adaptable" href="#be-adaptable" class="permalink">🔗</a>
+
+The energy and carbon accounting sectors are constantly evolving,
+with new technologies, methods, and requirements emerging frequently.
+To ensure the longevity and relevance of our specifications, we must
+design them to be adaptable and responsive to changes in these sectors.
+
+### Build in extensibility <a id="build-in-extensibility" href="#build-in-extensibility" class="permalink">🔗</a>
+
+We must design our specifications to support extensibility, allowing
+for the addition of new features and functionality over time without
+requiring significant changes to existing implementations (i.e. try
+to be backwards compatible). This includes using modular designs and
+providing clear guidance on how extensions can be integrated into
+the core specifications.
+
+### Encourage feedback and contributions <a id="encourage-feedback" href="#encourage-feedback" class="permalink">🔗</a>
+
+We must promote an open and inclusive community that encourages
+feedback and contributions from a wide range of stakeholders. By
+actively soliciting input and engaging with different perspectives,
+we can ensure that our specifications remain relevant and useful in
+a changing landscape.
+
+### Regularly review and update <a id="regularly-review-and-update" href="#regularly-review-and-update" class="permalink">🔗</a>
+
+We must establish a process for regular review and updates to the
+specifications to ensure they remain aligned with the latest
+developments in the energy and carbon accounting sectors. This
+includes monitoring changes in related standards and best practices,
+as well as incorporating feedback from the user community.
