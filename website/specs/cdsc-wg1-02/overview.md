@@ -64,128 +64,160 @@ Content-Type: application/json;charset=UTF-8
 
 {
     # OAuth Metadata
-    "issuer": "https://demoutility.com",
 
-    ## OAuth Metadata - general info and docs
+    ## OAuth Metadata - General information
+    "issuer": "https://demoutility.com",
     "service_documentation": "https://demoutility.com/docs/oauth",
     "op_policy_uri": "https://demoutility.com/legal/oauth-policy",
     "op_tos_uri": "https://demoutility.com/legal/oauth-terms",
 
-    ## OAuth Metadata - endpoints
+    ## OAuth Metadata - Functional endpoints
     "registration_endpoint": "https://demoutility.com/oauth/register",
     "authorization_endpoint": "https://demoutility.com/oauth/authorize",
     "token_endpoint": "https://demoutility.com/oauth/token",
     "revocation_endpoint": "https://demoutility.com/oauth/token/revoke",
     "introspection_endpoint": "https://demoutility.com/oauth/token/info",
+    "pushed_authorization_request_endpoint": "https://demoutility.com/oauth/par",
+    "code_challenge_methods_supported": [
+        "S256"
+    ],
 
-    ## OAuth Metadata - functionality supported
+    ## OAuth Metadata - Scopes available
     "scopes_supported": [
         "client_admin",
-        "accounts",
-        "services",
-        "programs",
-        "bills",
         "usage",
-        "aggregate_usage"
+        ...
     ],
-    "response_types_supported": [
-        "code",
-    ],
-    "token_endpoint_auth_methods_supported": [
-        "none",
-        "client_secret_basic",
-    ],
-    "grant_types_supported": [
-        "authorization_code",
-        "client_credentials",
-        "refresh_token",
-    ],
-    "code_challenge_methods_supported": [
-        "S256",
-    ],
+    "authorization_details_types_supported": [
+        "client_admin",
+        "usage",
+        ... (same as "scopes_supported")
+    ]
 
 
     # CDS Extension
     "cds_oauth_version": "v1",
-    "cds_clients_api": "https://demoutility.com/api/clients",
 
-    # CDS Extension - human-method alternative
+    # CDS Extension - Required human-method alternative links
     "cds_human_registration": "https://demoutility.com/clients/register",
     "cds_client_directory": "https://demoutility.com/clients/directory",
+    "cds_test_accounts": "https://demoutility.com/docs/oauth/test-accounts",
 
-    # CDS Extension - additional registration fields
-    "cds_registration_extras": [
-        {
-            "name": "cds_initial_scope_of_use",
-            "description": "Describe how you will use customer data that is authorized to you."
-            "type": "string",
-            "default": null,
-        },
-        {
-            "name": "cds_initial_scope_of_use_tos_uri",
-            "description": "Optionally, provide a link to your terms for your scope of use."
-            "type": "url",
-            "default": null,
-        },
-        {
-            "name": "cds_autolist_in_directory",
-            "description": "Do you want to be automatically listed in the public client directory when registered and approved?"
-            "type": "boolean",
-            "default": true,
-        },
-        ...
-    ],
+    # CDS Extension - Required API endpoints
+    "cds_clients_api": "https://demoutility.com/api/clients",
+    "cds_client_settings_api": "https://demoutility.com/api/client-settings",
+    "cds_client_updates_api": "https://demoutility.com/api/client-updates",
+    "cds_scope_credentials_api": "https://demoutility.com/api/scope-credentials",
+    "cds_grants_api": "https://demoutility.com/api/grants",
 
     # CDS Extension - scope descriptions and requirements
     "cds_scope_descriptions": {
+
         "client_admin": {
+            ## Information about the scope
+            "name": "Client Administrator Access",
             "description": "Allows ability to view and manage the requesting client's registration.",
-            "grant_types": [
-                "client_credentials",
-            ],
-            "token_endpoint_auth_methods": [
-                "client_secret_basic",
-            ],
-            "requirements": [],
-            "scope_modifiers": [],
+            "documentation": "https://demoutility.com/docs/oauth/scopes#client_admin",
+
+            ## Extra fields required for registration
+            "registration_requirements": [],
+
+            ## OAuth access configuration for this scope
+            "response_types_supported": [],
+            "grant_types_supported": ["client_credentials"],
+            "token_endpoint_auth_methods_supported": ["client_secret_basic"],
+            "code_challenge_methods_supported": [],
+
+            ## Rich Authorization Request 
+            "authorization_details_additional_fields": [],
         },
-        "accounts": {
-            "description": "Allows access to a customers"
-            "grant_types": [
-                "authorization_code",
-                "refresh_token"
-            ],
-            "token_endpoint_auth_methods": [
-                "none",
-                "client_secret_basic",
-            ],
-            "requirements": [
+
+        "bills": {
+            ## Information about the scope
+            "name": "Customer bill data access",
+            "description": "Allows access to the authorizing customer's utility bill data.",
+            "documentation": "https://demoutility.com/docs/customer-data-access/bills",
+
+            ## Extra fields and steps required for registration
+            "registration_requirements": ["sou", "review_step1", "setup_fee1"],
+            "registration_optional": ["tos_url", "dir_autolist"],
+
+            ## OAuth access configuration for this scope
+            "response_types_supported": ["code"],
+            "grant_types_supported": ["authorization_code", "refresh_token"],
+            "token_endpoint_auth_methods_supported": ["none", "client_secret_basic"],
+            "code_challenge_methods_supported": ["S256"],
+
+            ## Rich Authorization Request 
+            "authorization_details_fields": [
                 {
-                    "id": "sou"
-                    "type": "registration_field",
-                    "field_name": "cds_initial_scope_of_use",
-                    "name": "Scope of Use",
-                    "description": "You must describe how you will use this data when authorized access by customers.",
+                    "name": "historical_start",
+                    "type": "relative_or_absolute_date",
+                    "default": "3y",
+                    "description": #############TODO
                 },
                 {
-                    "id": "review_step1"
-                    "type": "manual_review",
-                    "name": "Utility Review",
-                    "description": "Demo Utility will manually review your client registration before allowing use of this scope.",
+                    "name": "ongoing_end",
+                    "type": "relative_or_absolute_date",
+                    "default": "3y",
+                    "description": #############TODO
                 },
             ],
-            "scope_modifiers": {
-                "_number": {
-                    "name": "Account Number",
-                    "description": "Allow access to a customer's account number for the authorized accounts.",
-                    "requirements": [],
-                },
-            },
         },
         ...
     },
 
+    # CDS Extension - Additional registration fields
+    "cds_registration_fields": {
+        "sou": {
+            "type": "registration_field",
+            "field_name": "cds_initial_scope_of_use",
+            "description": "Describe how you will use customer data that is authorized to you.",
+            "documentation": "https://demoutility.com/docs/oauth/registration#sou",
+            "type": "string_or_null",
+            "max_length": 500,
+            "default": null,
+        },
+        "tos_url": {
+            "type": "registration_field",
+            "field_name": "cds_initial_scope_of_use_tos_url",
+            "description": "Optionally, provide a link to your terms for your scope of use.",
+            "documentation": "https://demoutility.com/docs/oauth/registration#tos_url",
+            "type": "url_or_null",
+            "default": null,
+        },
+        "dir_autolist": {
+            "type": "registration_field",
+            "field_name": "cds_autolist_in_directory",
+            "description": "Do you want to be automatically listed in the public client directory when registered and approved?",
+            "documentation": "https://demoutility.com/docs/oauth/registration#dir-autolist",
+            "type": "boolean",
+            "default": true,
+        },
+        "review_step1": {
+            "type": "manual_review",
+            "name": "Utility Review",
+            "description": "Demo Utility will manually review your client registration before enabling live access.",
+            "documentation": "https://demoutility.com/docs/oauth/registration#review-process",
+        },
+        "setup_fee1": {
+            "type": "payment_required",
+            "name": "Registration Fee",
+            "amount": 2000,
+            "currency": "USD",
+            "description": "Demo Utility requires a setup fee payment of $20 before enabling live access.",
+            "documentation": "https://demoutility.com/docs/oauth/registration#review-process",
+        },
+        ...
+    ],
 }
+
+
+
+
+
+
+
 ```
 
 ## Dynamic Client Registration <a id="client-registration" href="#client-registration" class="permalink">🔗</a>
@@ -244,9 +276,6 @@ Authorization: Bearer <access_token>
             # Normal OAuth client metadata
             "client_id": "aaaaaaaaaa",
             "client_id_issued_at": 2893256800,
-            "client_secret": "ccccccccccccccccccccccccccc",
-            "client_secret_expires_at": 2893276800,
-            "scope": "client_admin",  # NOTE: see cds_scope_credentials for additional scopes
 
             "client_name": "Example EV Company",
             "client_uri": "https://example.com",
@@ -331,9 +360,7 @@ Authorization: Bearer <access_token>
                     "grant_types": [
                         "client_credentials",
                     ],
-                    "token_endpoint_auth_methods_supported": [
-                        "client_secret_basic",
-                    ],
+                    "token_endpoint_auth_method": "client_secret_basic",
                 },
                 {
                     "id": "6666666666",
@@ -348,14 +375,36 @@ Authorization: Bearer <access_token>
                     "response_types": [
                         "code",
                     ],
+                    "redirect_uris": [
+                        "https://client.example.org/callback",
+                        "https://client.example.org/callback2",
+                    ],
                     "grant_types": [
                         "authorization_code",
                         "refresh_token",
                     ],
-                    "token_endpoint_auth_methods_supported": [
-                        "none",
-                        "client_secret_basic",
+                    "token_endpoint_auth_method": "client_secret_basic",
+                },
+                {
+                    "id": "7777777777",
+                    "scope": "accounts ...",
+                    "status": "sandbox",
+                    "status_options": [
+                        "sandbox",
+                        "disabled",
                     ],
+                    "response_types": [
+                        "code",
+                    ],
+                    "redirect_uris": [
+                        "https://client.example.org/callback",
+                        "https://client.example.org/callback2",
+                    ],
+                    "grant_types": [
+                        "authorization_code",
+                        "refresh_token",
+                    ],
+                    "token_endpoint_auth_method": "none",
                 },
             ],
             "cds_scope_credentials_has_more": false,
@@ -365,18 +414,6 @@ Authorization: Bearer <access_token>
     "previous": null
 }
 ```
-
-### Client Settings Management <a id="client-settings-management" href="#client-settings-management" class="permalink">🔗</a>
-
-TODO
-
-### Client Updates <a id="client-updates" href="#client-updates" class="permalink">🔗</a>
-
-TODO
-
-### Client Scope Credentials Management <a id="client-secrets-management" href="#client-secrets-management" class="permalink">🔗</a>
-
-TODO
 
 ---
 
