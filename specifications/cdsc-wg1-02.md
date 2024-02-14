@@ -22,8 +22,9 @@ This specification defines how utilities and other central entities ("Servers") 
     * [3.3. Scope Descriptions Object Format](#scope-descriptions-format)  
     * [3.4. Registration Field Object Format](#registration-field-format)  
     * [3.5. Registration Field Types](#registration-field-types)  
-    * [3.6. Authorization Details Field Object Format](#auth-details-fields-format)  
-    * [3.7. Authorization Details Field Types](#auth-details-field-types)  
+    * [3.6. Registration Field Formats](#registration-field-formats)  
+    * [3.7. Authorization Details Field Object Format](#auth-details-fields-format)  
+    * [3.8. Authorization Details Field Formats](#auth-details-field-formats)  
 * [4. Client Registration Process](#client-registration-process)  
     * [4.1. Client Registration Request](#registration-request)  
     * [4.2. Client Registration Response](#registration-response)  
@@ -103,19 +104,25 @@ In addition to requiring that the URL be included in the [CDSC-WG1-01 Metadata O
 
 A Server's Authorization Server Metadata Object follows OAuth's [Authorization Server Metadata](https://www.rfc-editor.org/rfc/rfc8414#section-2) object format with the following modifications from OPTIONAL or RECOMMENDED to REQUIRED:
 
-* `registration_endpoint` - _URL_ - (REQUIRED) OAuth's [Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591) functionality is required to enable the [Client Registration Process](#client-registration-process)
-* `scopes_supported` -  _Array[string]_ - (REQUIRED) Disclosure of available scopes is required to enable integration capabilities into other platforms
-* `service_documentation` - _URL_ - (REQUIRED) Developer documentation is required by the Server to help streamline Client integration
-* `op_policy_uri` - _URL_ - (REQUIRED) Policies for Clients registering is required
-* `op_tos_uri` - _URL_ - (REQUIRED) Terms of use for Clients registering is required
-* `revocation_endpoint` - _URL_ - (REQUIRED) OAuth's [Token Revocation](https://www.rfc-editor.org/rfc/rfc7009) functionality is required
-* `introspection_endpoint` - _URL_ - (REQUIRED) OAuth's [Token Introspection](https://www.rfc-editor.org/rfc/rfc7662) functionality is required
+* `registration_endpoint` - _URL_ - (REQUIRED) OAuth's [Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591) functionality is required to enable the [Client Registration Process](#client-registration-process).
+* `scopes_supported` -  _Array[string]_ - (REQUIRED) Disclosure of available scopes is required to enable integration capabilities into other platforms. This array MUST contain the `client_admin` scope.
+* `service_documentation` - _URL_ - (REQUIRED) Developer documentation is required by the Server to help streamline Client integration.
+* `op_policy_uri` - _URL_ - (REQUIRED) Policies for Clients registering is required.
+* `op_tos_uri` - _URL_ - (REQUIRED) Terms of use for Clients registering is required.
+* `revocation_endpoint` - _URL_ - (REQUIRED) OAuth's [Token Revocation](https://www.rfc-editor.org/rfc/rfc7009) functionality is required.
+* `introspection_endpoint` - _URL_ - (REQUIRED) OAuth's [Token Introspection](https://www.rfc-editor.org/rfc/rfc7662) functionality is required.
 * `code_challenge_methods_supported` - _Array[string]_ - (REQUIRED) OAuth's [Proof Key for Code Exchange by OAuth Public Clients](https://www.rfc-editor.org/rfc/rfc7636) functionality is required. Servers MUST offer `S256` and MUST NOT offer `plain` code verifier methods.
 
 In addition to the standard set of OAuth [Authorization Server Metadata](https://www.rfc-editor.org/rfc/rfc8414#section-2) values, this specification also requires the following OAuth extension capabilities to be included in the metadata object values:
 
 * `authorization_details_types_supported` - _Array[string]_ - (REQUIRED) OAuth's [Rich Authorization Requests](https://www.rfc-editor.org/rfc/rfc9396) functionality is required. This array of values MUST be the same as `scopes_supported`.
-* `pushed_authorization_request_endpoint` - _URL_ - (REQUIRED) OAuth's [Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126) functionality is required
+* `pushed_authorization_request_endpoint` - _URL_ - (REQUIRED) OAuth's [Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126) functionality is required.
+
+In addition to the above additionally required set of OAuth [Authorization Server Metadata](https://www.rfc-editor.org/rfc/rfc8414#section-2) values, this specification clarifies use of the following OAuth sandard values:
+
+* `response_types_supported` - _Array[string]_ - (REQUIRED) The response types in this array MUST represent a union of all `response_types_supported` values contained in the `cds_scope_descriptions` object.
+* `grant_types_supported` - _Array[string]_ - (REQUIRED) The response types in this array MUST represent a union of all `grant_types_supported` values contained in the `cds_scope_descriptions` object.
+* `token_endpoint_auth_methods_supported` - _Array[string]_ - (REQUIRED) The response types in this array MUST represent a union of all `token_endpoint_auth_methods_supported` values contained in the `cds_scope_descriptions` object.
 
 In addition to OAuth capabilities included in the metadata object, this specification adds the following Carbon Data Specification (CDS) values:
 
@@ -128,42 +135,121 @@ In addition to OAuth capabilities included in the metadata object, this specific
 * `cds_client_updates_api` - _URL_ - (REQUIRED) The base url for the [Client Updates API](#client-updates-api)
 * `cds_scope_credentials_api` - _URL_ - (REQUIRED) The base url for the [Scope Credentials API](#scope-creds-api)
 * `cds_grants_api` - _URL_ - (REQUIRED) The base url for the [Grants API](#grants-api)
-* `cds_scope_descriptions` - _Hash[[ScopeDescription](#scope-descriptions-format)]_ - (REQUIRED) An object providing additional information about what Scope values listed in `scopes_supported` mean. This object MUST include a key for each Scope listed in `scopes_supported` with a [Scope Description](#scope-descriptions-format) as that key's value.
-* `cds_registration_fields` - _Hash[[RegistrationField](#registration-field-format)]_ - (REQUIRED) An object providing additional information about Registration Field that are referenced in [Scope Description's](#scope-descriptions-format) `registration_requirements` list. This object MUST include a key for each Registration Field `id` included in the `registration_requirements` lists in the metadata object with a [Registration Field](#registration-field-format) as that key's value. If all `registration_requirements` lists are empty, this reference object is an empty object (`{}`).
+* `cds_scope_descriptions` - _Map[[ScopeDescription](#scope-descriptions-format)]_ - (REQUIRED) An object providing additional information about what Scope values listed in `scopes_supported` mean. This object MUST include a key for each Scope listed in `scopes_supported` with a [Scope Description](#scope-descriptions-format) as that key's value.
+* `cds_registration_fields` - _Map[[RegistrationField](#registration-field-format)]_ - (REQUIRED) An object providing additional information about Registration Field that are referenced in [Scope Description's](#scope-descriptions-format) `registration_requirements` list. This object MUST include a key for each Registration Field `id` included in the `registration_requirements` lists in the metadata object with a [Registration Field](#registration-field-format) as that key's value. If all `registration_requirements` lists are empty, this reference object is an empty object (`{}`).
 
-Other values in specifications for the Authorization Server Metadata specification or other extensions MAY be included as described in their respective specifications.
+Other values not mentioned here but listed in specifications for the Authorization Server Metadata specification or other extensions MAY be included as described in their respective specifications.
 
 ### 3.3. Scope Descriptions Object Format <a id="scope-descriptions-format" href="#scope-descriptions-format" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+Scope Description objects are formatted as JSON objects and contain named values. The following values are included in the default list available in scope description objects.
+
+* `id` - _string_ - (REQUIRED) The unique identifier of the scope. This MUST be the same value as the object key the Metadata Object's `cds_scope_descriptions` object.
+* `name` - _string_ - (REQUIRED) A human-readable name of the scope.
+* `description` - _string_ - (REQUIRED) A human-readable description of what access or actions the scope will enable.
+* `documentation` - _URL_ - (REQUIRED) Where developers can find documentation for the scope.
+* `registration_requirements` - _Array[string]_ - (REQUIRED) A list of any registration fields that MUST be submitted with [Client Registration Requests](#registration-request) or requirements that must be completed after registration before the scope is available to use in the Server's production environment. All values in this array MUST be included in the Metadata Object's `cds_registration_fields` object for a complete description of the requirement. If no additional requirements are needed, this value is an empty array (`[]`).
+* `registration_optional` - _Array[string]_ - (REQUIRED) A list of any registration fields that Clients MAY submit with the [Client Registration Requests](#registration-request). If no additional fields are available, this value is an empty array (`[]`).
+* `response_types_supported` - _Array[string]_ - (REQUIRED) The OAuth `response_type` values that can be used with this scope. This value follows the same behavior as OAuth's [Metadata object `response_types_supported`](https://www.rfc-editor.org/rfc/rfc8414#section-2), except that this value represents the response types supported for this individual scope and not all scopes for the Client. If a scope is not available for OAuth authorization requests (e.g. a `client_credentials`-only scope), this value is an empty array (`[]`).
+* `grant_types_supported` - _Array[string]_ - (REQUIRED) The OAuth grant type values that can be used with this scope. This value follows the same behavior as OAuth's [Metadata object `grant_types_supported`](https://www.rfc-editor.org/rfc/rfc8414#section-2), except that this value represents the grant types supported for this individual scope and not all scopes for the Client. This array MUST contain at least one grant type.
+* `token_endpoint_auth_methods_supported` - _Array[string]_ - (REQUIRED) The OAuth client authentication methods that can be used for granting tokens with this scope. This value follows the same behavior as OAuth's [Metadata object `token_endpoint_auth_methods_supported`](https://www.rfc-editor.org/rfc/rfc8414#section-2), except that this value represents the client authentication methods supported for this individual scope and not all scopes for the Client. A value of `"none"` this array indicates that the scope may be used for public application without using a client secret.
+* `authorization_details_fields` - _Array[[AuthorizationDetailsField](#auth-details-fields-format)]_ - (REQUIRED) A list of fields that MAY be included in [Rich Authorization Requests](https://www.rfc-editor.org/rfc/rfc9396) the authorization details object for this scope `type`. If no extra authorization details fields are available, this value is an empty list (`[]`).
 
 ### 3.4. Registration Field Object Format <a id="registration-field-format" href="#registration-field-format" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+Registration Field objects are formatted as JSON objects and contain named values. The following values are included in the default list available in registration fields objects.
+
+* `id` - _string_ - (REQUIRED) The unique identifier of the registration field. This MUST be the same value as the object key the Metadata Object's `cds_registration_fields` object.
+* `type` - _[RegistrationFieldType](#registration-field-types)_ - (REQUIRED) What type of Registration Field this entry is.
+* `description` - _string_ - (REQUIRED) A human-readable description of what should be submitted or expected for this registration field.
+* `documentation` - _URL_ - (REQUIRED) Where developers can find more information about this registration field.
+* `field_name` - _string_ - (OPTIONAL) If type is `registration_field`, this is the name of the field to submit in the [Client Registration Request](#registration-request) and MUST start with `cds_`.
+* `format` - _[RegistrationFieldFormats](#registration-field-formats)_ - (OPTIONAL) If type is `registration_field`, this is the data format that MUST be used in the value of the field.
+* `default` - _various_ - (OPTIONAL) If type is `registration_field` and the field is optional, this is the default value that will be used in lieu of the Client submitting a value themselves. Including this `default` value in the object indicates the registration field is optional.
+* `max_length` - _integer_ - (OPTIONAL) If format is one of `string`, `string_or_null`, `url`, `url_or_null`, `email`, or `email_or_null`, this is the maximum length of the submitted value, if not `null`.
+* `max_size` - _integer_ - (OPTIONAL) If format is one of `image`, `image_or_null`, `pdf`, or `pdf_or_null`, this is the maximum file size of the submitted value before encoding into [Base64](https://en.wikipedia.org/wiki/Base64), if not `null`.
+* `amount` - _decimal_ - (OPTIONAL) If type is `payment_required`, this is the amount in `currency` that will be required to complete registration.
+* `currency` - _string_ - (OPTIONAL) If type is `payment_required`, this is the monetary currency in [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) currency code.
 
 ### 3.5. Registration Field Types <a id="registration-field-types" href="#registration-field-types" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+Registration Field types define which type of action the Client or Server will take for that registration field. Registration Fields can be either something that MUST or MAY be submitted as part of the [Client Registration Request](#registration-request), depending on the submitted scope's `registration_requirements` and `registration_optional` values, or can be something that a Client must do after registration in order to be full approved for use in the production environment.
 
-### 3.6. Authorization Details Field Object Format <a id="auth-details-fields-format" href="#auth-details-fields-format" class="permalink">🔗</a>
+The following list of strings are an enumerated set of registration field types that are valid `type` values in the registration field object.
 
-<span style="background-color:yellow">TODO</span>
+* `registration_field` - This field should be submitting with the [Client Registration Request](#registration-request) as the `field_name`. This type of registration field MUST also have `field_name` and `format` values. If this field is optional as part of registration, `default` must also be defined in the registration field object.
+* `manual_review` - This field indicates that the Server will manually review the registration before approving it for production use. Notifications and communication about the status of this manual review will be conveyed using the [Client Updates API](#client-updates-api).
+* `payment_required` - This field indicates that a setup payment will be required before the Server will approve the Client for production use. Notifications and communication about how to pay and confirmation of payment will be conveyed using the [Client Updates API](#client-updates-api).
+* `email_verification` - This field indicates that the Client must verify their email before the Server will approve the Client for production use. Notifications and communication about how to verify the Client's contact email will be conveyed using the [Client Updates API](#client-updates-api).
 
-### 3.7. Authorization Details Field Types <a id="auth-details-field-types" href="#auth-details-field-types" class="permalink">🔗</a>
+### 3.6. Registration Field Formats <a id="registration-field-formats" href="#registration-field-formats" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+Registration Field formats define the data type of submitted values for these fields in [Client Registration Requests](#registration-request).
+
+The following list of strings are an enumerated set of registration field formats that are valid `format` values in the registration field object.
+
+* `string` - If required, a string value MUST be submitted.
+* `string_or_null` - Same as `string`, only with `null` being an additional possible value.
+* `url` - If required, a URL value MUST be submitted.
+* `url_or_null` - Same as `url`, only with `null` being an additional possible value.
+* `email` - If required, a valid email address string MUST be submitted.
+* `email_or_null` - Same as `email`, only with `null` being an additional possible value.
+* `boolean` - If required, either `true` or `false` MUST be submitted.
+* `boolean_or_null` - Same as `boolean`, only with `null` being an additional possible value.
+* `image` - If required, a valid image file formatted as `image/jpeg` or `image/png` encoded as a string using [Base64](https://en.wikipedia.org/wiki/Base64) MUST be submitted.
+* `image_or_null` - Same as `image`, only with `null` being an additional possible value.
+* `pdf` - If required, a valid pdf file formatted encoded using [Base64](https://en.wikipedia.org/wiki/Base64) as a string MUST be submitted.
+* `pdf_or_null` - Same as `pdf`, only with `null` being an additional possible value.
+
+### 3.7. Authorization Details Field Object Format <a id="auth-details-fields-format" href="#auth-details-fields-format" class="permalink">🔗</a>
+
+Authorization Details Field objects are formatted as JSON objects and contain named values. The following values are included in the default list available in authorization details field objects.
+
+* `id` - _string_ - (REQUIRED) The unique identifier of the authorization details field. This value is used as the key for the field when added to `authorization_details` data fields as part of OAuth's [Rich Authorization Requests](https://www.rfc-editor.org/rfc/rfc9396).
+* `name` - _string_ - (REQUIRED) A human-readable name of the authorization details field.
+* `description` - _string_ - (REQUIRED) A human-readable description of what submitting values for this authorization details field means.
+* `documentation` - _URL_ - (REQUIRED) Where developers can find more information about this authorization details field.
+* `format` - _[AuthorizationDetailsFieldFormats](#auth-details-field-formats)_ - (OPTIONAL) The data format that MUST be used in the value of the field when including it as a data field in `authorization_details` objects.
+* `default` - _various_ - (REQUIRED) The default value that will be used in lieu of the Client submitting a value themselves. This is also the value that will be used if a basic OAuth `scope` string parameter is used instead of an `authorization_details` parameter.
+* `relative_date_limit` - _integer_ - (OPTIONAL) If `format` is `relative_or_absolute_date`, this is the largest relative date range that may be submitted. Servers MUST validate both submitted absolute dates and relative dates against the relative date limit, where when comparing to a submitted absolute date, the current Server date in the Server's local timezone is used as the relative point of reference.
+* `absolute_date_limit` - _integer_ - (OPTIONAL) If `format` is `relative_or_absolute_date`, this is the furthest away date that may be submitted. Servers MUST validate both submitted absolute dates and relative dates against the absolute date limit, where when comparing to a submitted relative date, the current Server date in the Server's local timezone is used as the relative point of reference.
+* `limit` - _integer_ - (OPTIONAL) If format is one of `int` or `decimal`, this is the largest value that can be the submitted.
+
+### 3.8. Authorization Details Field Formats <a id="auth-details-field-formats" href="#auth-details-field-formats" class="permalink">🔗</a>
+
+Authorization Details Field formats define the data type of submitted values for these fields in `authorization_details` for OAuth's [Rich Authorization Requests](https://www.rfc-editor.org/rfc/rfc9396).
+
+The following list of strings are an enumerated set of authorization details field formats that are valid `format` values in the [Authorization Details Field objects](#auth-details-fields-format).
+
+* `relative_or_absolute_date` - A relative or absolute date string. Relative dates are formatted as a positive integer followed by a `y`, `m`, `w`, or `d` character, where the character represents the unit of duration (year, month, week, and day), and the integer represents the number of units for that duration. For example, `3y` represents a relative date range of 3 years. Absolute dates are formatted as ISO8601 dates (`YYYY-MM-DD`). For example, `2024-01-02` represents the 2nd of January, 2024. Dates are defined as the date from the perspective of the Server's local timezone.
+* `int` - An integer value.
+* `decimal` - A decimal value, which can have any number of significant units, but MUST NOT be stored or handled as a float value, in order to retain the precision of the value throughout Server and Client processing.
 
 ## 4. Client Registration Process <a id="client-registration-process" href="#client-registration-process" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+OAuth's [Dynamic Client Registration](https://www.rfc-editor.org/rfc/rfc7591) is used as the basis for initially registering Clients with Servers. To perform the dynamic registration process, the Client submits a request to the Server's `registration_endpoint` provided in the Server's [Metadata object](#auth-server-metadata-format) as described in [Client Registration Request](#registration-request). The Server then responds with either an error or a generated Client registration response as described in [Client Registration Response](#registration-response).
 
 ### 4.1. Client Registration Request <a id="registration-request" href="#registration-request" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+This specification requires Clients and Servers follow the process described in OAuth's [Client Registration Request](https://www.rfc-editor.org/rfc/rfc7591#section-3.1), with the following modifications.
+
+* Clients MAY submit additional named values that are defined as part of scope `registration_requirements` and `registration_optional` arrays in `cds_scope_descriptions` objects, using the registration field reference's `field_name` value as the submitted key in the registration request.
 
 ### 4.2. Client Registration Response <a id="registration-response" href="#registration-response" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+This specification requires Servers follow the process described in OAuth's [Client Registration Response](https://www.rfc-editor.org/rfc/rfc7591#section-3.2), with the following modifications.
+
+* A `client_secret` value MUST be present in the response and be limited to `client_admin` scope use only.
+* The `scope` value MUST include the `client_admin` scope.
+
+Additionally, the following additional named values MUST be included in the response.
+
+* `cds_server_metadata` - _URL_ - (REQUIRED) Where the Client can find their registration-specific version of the [CDSC-WG1-01 Server Metadata](/specs/cdsc-wg1-01/). If the Client's CDSC server metadata is no different from the public CDSC server metadata, Servers MAY simply link to the public URL. If this metadata endpoint requires authentication, Servers MUST authenticate Client requests to this endpoint via Bearer access token obtained using OAuth's `client_credentials` grant with a scope of `client_admin`, and reject unauthenticated requests with a `401 Unauthorized` response code. Clients know that they must use a Bearer token when Servers return a `401` response code for this endpoint when the Client makes an unauthenticated request to the endpoint.
+* `cds_clients_api` - _URL_ - (REQUIRED) The base url for the [Clients API](#clients-api).
+* `cds_client_settings_api` - _URL_ - (REQUIRED) The base url for the [Client Settings API](#client-settings-api).
+* `cds_client_updates_api` - _URL_ - (REQUIRED) The base url for the [Client Updates API](#client-updates-api).
+* `cds_scope_credentials_api` - _URL_ - (REQUIRED) The base url for the [Scope Credentials API](#scope-creds-api).
+* `cds_grants_api` - _URL_ - (REQUIRED) The base url for the [Grants API](#grants-api).
 
 ## 5. Clients API <a id="clients-api" href="#clients-api" class="permalink">🔗</a>
 
