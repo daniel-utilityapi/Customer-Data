@@ -115,6 +115,7 @@ Content-Type: application/json;charset=UTF-8
 
         "client_admin": {
             ## Information about the scope
+            "id": "client_admin",
             "name": "Client Administrator Access",
             "description": "Allows ability to view and manage the requesting client's registration.",
             "documentation": "https://demoutility.com/docs/oauth/scopes#client_admin",
@@ -129,11 +130,12 @@ Content-Type: application/json;charset=UTF-8
             "code_challenge_methods_supported": [],
 
             ## Rich Authorization Request 
-            "authorization_details_additional_fields": [],
+            "authorization_details_fields": [],
         },
 
         "bills": {
             ## Information about the scope
+            "id": "bills",
             "name": "Customer bill data access",
             "description": "Allows access to the authorizing customer's utility bill data.",
             "documentation": "https://demoutility.com/docs/customer-data-access/bills",
@@ -146,21 +148,24 @@ Content-Type: application/json;charset=UTF-8
             "response_types_supported": ["code"],
             "grant_types_supported": ["authorization_code", "refresh_token"],
             "token_endpoint_auth_methods_supported": ["none", "client_secret_basic"],
-            "code_challenge_methods_supported": ["S256"],
 
             ## Rich Authorization Request 
             "authorization_details_fields": [
                 {
-                    "name": "historical_start",
-                    "type": "relative_or_absolute_date",
+                    "id": "historical_start",
+                    "name": "Historical data starting date",
+                    "description": "This is the earliest date of historical bill data coverage that will be shared.",
+                    "documentation": "https://demoutility.com/docs/customer-data-access/bills#historical-start",
+                    "format": "relative_or_absolute_date",
                     "default": "3y",
-                    "description": #############TODO
                 },
                 {
-                    "name": "ongoing_end",
-                    "type": "relative_or_absolute_date",
+                    "id": "ongoing_end",
+                    "name": "Ongoing data access end date",
+                    "description": "This is the cutoff date for ongoing access to bill data.",
+                    "documentation": "https://demoutility.com/docs/customer-data-access/bills#ongoing-end",
+                    "format": "relative_or_absolute_date",
                     "default": "3y",
-                    "description": #############TODO
                 },
             ],
         },
@@ -170,37 +175,42 @@ Content-Type: application/json;charset=UTF-8
     # CDS Extension - Additional registration fields
     "cds_registration_fields": {
         "sou": {
+            "id": "sou",
             "type": "registration_field",
             "field_name": "cds_initial_scope_of_use",
             "description": "Describe how you will use customer data that is authorized to you.",
             "documentation": "https://demoutility.com/docs/oauth/registration#sou",
-            "type": "string_or_null",
+            "format": "string_or_null",
             "max_length": 500,
             "default": null,
         },
         "tos_url": {
+            "id": "tos_url",
             "type": "registration_field",
             "field_name": "cds_initial_scope_of_use_tos_url",
             "description": "Optionally, provide a link to your terms for your scope of use.",
             "documentation": "https://demoutility.com/docs/oauth/registration#tos_url",
-            "type": "url_or_null",
+            "format": "url_or_null",
             "default": null,
         },
         "dir_autolist": {
+            "id": "dir_autolist",
             "type": "registration_field",
             "field_name": "cds_autolist_in_directory",
             "description": "Do you want to be automatically listed in the public client directory when registered and approved?",
             "documentation": "https://demoutility.com/docs/oauth/registration#dir-autolist",
-            "type": "boolean",
+            "format": "boolean",
             "default": true,
         },
         "review_step1": {
+            "id": "review_step1",
             "type": "manual_review",
             "name": "Utility Review",
             "description": "Demo Utility will manually review your client registration before enabling live access.",
             "documentation": "https://demoutility.com/docs/oauth/registration#review-process",
         },
         "setup_fee1": {
+            "id": "setup_fee1",
             "type": "payment_required",
             "name": "Registration Fee",
             "amount": 2000,
@@ -275,6 +285,7 @@ Authorization: Bearer <access_token>
         {
             # Normal OAuth client metadata
             "client_id": "aaaaaaaaaa",
+            "client_secret": "zzzzzzzzzzzzzzzzzzzzzzz",
             "client_id_issued_at": 2893256800,
 
             "client_name": "Example EV Company",
@@ -287,131 +298,217 @@ Authorization: Bearer <access_token>
                 "tel:+15554443333",
             ],
 
-            # CDS Extenison - info for client
+            # CDS Extenisons
             "cds_server_metadata": "https://server.com/oauth/clients/aaaaaaaaaa-01/carbon-data-spec.json",
-
-            # CDS Extension - extended settings
-            "cds_settings_api": "https://server.com/oauth/clients/aaaaaaaaaa-01/settings",
-            "cds_settings": {
-                "default_scope": "accounts ...",
-                "scopes_of_use": [
-                    {
-                        "id": "default",
-                        "description": "For testing purposes only.",
-                        "tos_uri": null,
-                    },
-                ],
-                "public_directory": {
-                    "profile_uri": "https://server.com/directory/my-client",
-                    "profile_description": "Some description here...",
-                    "directory_slug": "my-client",
-                    "visibility": "autolist",
-                    "visibility_options": [
-                        "autolist",
-                        "unlisted",
-                        "disabled",
-                    ],
-                    "button_uri": "https://example.com/share/data",
-                    "button_style": "share_data",
-                    "button_style_options": [
-                        "share_data",
-                        "connect",
-                        "authorize",
-                    ],
-                    "contact_name": "ABC Customer Support",
-                    "contact_email": "support@example.com",
-                    "contact_phone": "+15552223333",
-                },
-            },
-
-            # CDS Extensions - updates and notifications
-            "cds_updates_api": "https://server.com/oauth/clients/aaaaaaaaaa-01/updates",
-            "cds_updates_latest": "2022-01-01T00:00:00Z",
-            "cds_updates_outstanding": [
-                {
-                    "uri": "https://demoutility.com/clients/aaaaaaaaaa-01/updates/444444444444",
-                    "created_at": "2022-01-01T00:00:00Z",
-                    "modified_at": "2022-01-01T00:00:00Z",
-                    "status": "pending",
-                    "updates_requested": [
-                        {
-                            "name": "client_name",
-                            "previous_value": "My Example Client",
-                            "new_value": "My New Name",
-                        },
-                    ],
-                },
-            ],
-            "cds_updates_outstanding_has_more": false,
-
-            # CDS Extensions - client scope credentials
+            "cds_clients_api": "https://server.com/oauth/clients",
+            "cds_client_settings_api": "https://server.com/oauth/clients/aaaaaaaaaa-01/settings",
+            "cds_client_updates_api": "https://server.com/oauth/clients/aaaaaaaaaa-01/updates",
             "cds_scope_credentials_api": "https://server.com/oauth/clients/aaaaaaaaaa-01/scope-credentials",
-            "cds_scope_credentials": [
-                {
-                    "id": "555555555",
-                    "scope": "client_admin",
-                    "client_secret": "ccccccccccccccccccccccccccc",
-                    "client_secret_expires_at": 2893276800,
-                    "status": "live",
-                    "status_options": [
-                        "live",
-                    ],
-                    "response_types": [],
-                    "grant_types": [
-                        "client_credentials",
-                    ],
-                    "token_endpoint_auth_method": "client_secret_basic",
-                },
-                {
-                    "id": "6666666666",
-                    "scope": "accounts ...",
-                    "client_secret": "dddddddddddddddddddddd",
-                    "client_secret_expires_at": 2893276800,
-                    "status": "sandbox",
-                    "status_options": [
-                        "sandbox",
-                        "disabled",
-                    ],
-                    "response_types": [
-                        "code",
-                    ],
-                    "redirect_uris": [
-                        "https://client.example.org/callback",
-                        "https://client.example.org/callback2",
-                    ],
-                    "grant_types": [
-                        "authorization_code",
-                        "refresh_token",
-                    ],
-                    "token_endpoint_auth_method": "client_secret_basic",
-                },
-                {
-                    "id": "7777777777",
-                    "scope": "accounts ...",
-                    "status": "sandbox",
-                    "status_options": [
-                        "sandbox",
-                        "disabled",
-                    ],
-                    "response_types": [
-                        "code",
-                    ],
-                    "redirect_uris": [
-                        "https://client.example.org/callback",
-                        "https://client.example.org/callback2",
-                    ],
-                    "grant_types": [
-                        "authorization_code",
-                        "refresh_token",
-                    ],
-                    "token_endpoint_auth_method": "none",
-                },
-            ],
-            "cds_scope_credentials_has_more": false,
+            "cds_grants_api": "https://server.com/oauth/clients/aaaaaaaaaa-01/scope-credentials",
         },
     ],
     "next": null,
     "previous": null
+}
+```
+
+## Client Settings Endpoint <a id="client-settings-endpoint" href="#client-settings-endpoint" class="permalink">🔗</a>
+```
+==Request==
+GET /api/clients/11111111/settings HTTP/1.1
+Host: demoutility.com
+Authorization: Bearer <access_token>
+
+{
+    "default_scope": "accounts ...",
+    "scopes_of_use": [
+        {
+            "id": "default",
+            "description": "For testing purposes only.",
+            "tos_uri": null,
+        },
+    ],
+    "public_directory": {
+        "profile_uri": "https://server.com/directory/my-client",
+        "profile_description": "Some description here...",
+        "directory_slug": "my-client",
+        "visibility": "autolist",
+        "visibility_options": [
+            "autolist",
+            "unlisted",
+            "disabled",
+        ],
+        "button_uri": "https://example.com/share/data",
+        "button_style": "share_data",
+        "button_style_options": [
+            "share_data",
+            "connect",
+            "authorize",
+        ],
+        "contact_name": "ABC Customer Support",
+        "contact_email": "support@example.com",
+        "contact_phone": "+15552223333",
+    },
+}
+```
+
+## Client Updates Endpoint <a id="client-updates-endpoint" href="#client-updates-endpoint" class="permalink">🔗</a>
+```
+==Request==
+GET /api/clients/11111111/updates HTTP/1.1
+Host: demoutility.com
+Authorization: Bearer <access_token>
+
+{
+    "outstanding": [
+        {
+            "type": "update_request",
+            "read": true,
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/5555555555555",
+            "created_at": "2022-01-01T00:00:00Z",
+            "modified_at": "2022-01-01T00:00:00Z",
+            "status": "pending",
+            "updates_requested": [
+                {
+                    "name": "client_name",
+                    "previous_value": "My Example Client",
+                    "new_value": "My New Name",
+                },
+            ],
+        },
+    ],
+    "outstanding_next": null,
+    "outstanding_previous": null,
+    "unread": [
+        {
+            "type": "notification",
+            "read": false,
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/66666666666666",
+            "created_at": "2022-01-01T00:00:00Z",
+            "modified_at": "2022-01-01T00:00:00Z",
+            "related_to": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/444444444444444",
+            "name": "Upcoming Maintenance Reminder",
+            "description": "As a reminder, on 2024-01-01 from 12:00 UTC to 14:00 UTC, we will be down for scheduled maintenance",
+        },
+    ],
+    "unread_next": null,
+    "unread_previous": null,
+    "read": [
+        {
+            "type": "notification",
+            "read": true,
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/444444444444444",
+            "created_at": "2022-01-01T00:00:00Z",
+            "modified_at": "2022-01-01T00:00:00Z",
+            "related_to": null,
+            "name": "Upcoming Maintenance",
+            "description": "On 2024-01-01 from 12:00 UTC to 14:00 UTC, we will be down for scheduled maintenance",
+        },
+    ],
+    "read_next": null,
+    "read_previous": null,
+}
+```
+
+## Scope Credentials Endpoint <a id="scope-credentials-endpoint" href="#scope-credentials-endpoint" class="permalink">🔗</a>
+```
+==Request==
+GET /api/clients/11111111/scope-credentials HTTP/1.1
+Host: demoutility.com
+Authorization: Bearer <access_token>
+
+{
+    "scope_credentials": [
+        {
+            "id": "555555555",
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/scope-credentials/555555555",
+            "scope": "client_admin",
+            "client_secret": "ccccccccccccccccccccccccccc",
+            "client_secret_expires_at": 2893276800,
+            "status": "live",
+            "status_options": [
+                "live",
+            ],
+            "response_types": [],
+            "grant_types": [
+                "client_credentials",
+            ],
+        },
+        {
+            "id": "6666666666",
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/scope-credentials/6666666666",
+            "scope": "accounts ...",
+            "client_secret": "dddddddddddddddddddddd",
+            "client_secret_expires_at": 2893276800,
+            "status": "sandbox",
+            "status_options": [
+                "sandbox",
+                "disabled",
+            ],
+            "response_types": [
+                "code",
+            ],
+            "grant_types": [
+                "authorization_code",
+                "refresh_token",
+            ],
+        },
+        {
+            "id": "7777777777",
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/scope-credentials/7777777777",
+            "scope": "accounts ...",
+            "status": "sandbox",
+            "status_options": [
+                "sandbox",
+                "disabled",
+            ],
+            "response_types": [
+                "code",
+            ],
+            "grant_types": [
+                "authorization_code",
+                "refresh_token",
+            ],
+        },
+    ],
+    "scope_credentials_next": null,
+    "scope_credentials_previous": null,
+}
+```
+
+## Grants Endpoint <a id="grants-endpoint" href="#grants-endpoint" class="permalink">🔗</a>
+```
+==Request==
+GET /api/clients/11111111/grants HTTP/1.1
+Host: demoutility.com
+Authorization: Bearer <access_token>
+
+{
+    "grants": [
+        {
+            # Default OAuth Token Introspection values
+            "active": true,
+            "scope": "client_admin",
+            "client_id": "11111111",
+            "token_type": "bearer",
+            "exp": 123456789,
+            "iat": 123456789,
+            ...
+
+            # Rich Authorization Request Extension
+            "authorization_details": [
+                {
+                    "type": "client_admin",
+                },
+            ],
+
+            # CDS Extension
+            "cds_id": "8888888888",
+            "cds_uri": "https://demoutility.com/api/clients/11111111/grants/8888888888",
+        },
+    ],
+    "grants_next": "https://demoutility.com/api/clients/11111111/grants?after=aaaaaaaaa",
+    "grants_previous": null,
 }
 ```
 
