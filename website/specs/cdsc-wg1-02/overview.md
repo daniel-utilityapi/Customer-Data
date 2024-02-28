@@ -47,7 +47,8 @@ Content-Type: application/json;charset=UTF-8
     ],
     ...
 
-    "oauth_metadata": "https://demoutility.com/.well-known/oauth-authorization-server"
+    "oauth_metadata": "https://demoutility.com/.well-known/oauth-authorization-server",
+    "client_directory": "https://demoutility.com/directory",
 }
 ```
 
@@ -321,6 +322,29 @@ Authorization: Bearer <access_token>
 
 {
     "default_scope": "accounts ...",
+
+    "profile_visibility": "autolist",
+    "profile_visibility_options": [
+        "autolist",
+        "unlisted",
+        "disabled",
+    ],
+    "profile_description": "Some description here...",
+    "profile_uri": "https://server.com/directory/my-client",
+    "profile_slug": "my-client",
+    "profile_button_uri": "https://example.com/share/data",
+    "profile_button_style": "share_data",
+    "profile_button_style_options": [
+        "share_data",
+        "connect",
+        "authorize",
+    ],
+    "profile_contact_name": "ABC Customer Support",
+    "profile_contact_email": "support@example.com",
+    "profile_contact_phone": "+15552223333",
+    "profile_contact_website": "https://example.com/contact-us",
+
+    # Customer Data (CDSC-WG1-03) extension
     "scopes_of_use": [
         {
             "id": "default",
@@ -328,27 +352,6 @@ Authorization: Bearer <access_token>
             "tos_uri": null,
         },
     ],
-    "public_directory": {
-        "profile_uri": "https://server.com/directory/my-client",
-        "profile_description": "Some description here...",
-        "directory_slug": "my-client",
-        "visibility": "autolist",
-        "visibility_options": [
-            "autolist",
-            "unlisted",
-            "disabled",
-        ],
-        "button_uri": "https://example.com/share/data",
-        "button_style": "share_data",
-        "button_style_options": [
-            "share_data",
-            "connect",
-            "authorize",
-        ],
-        "contact_name": "ABC Customer Support",
-        "contact_email": "support@example.com",
-        "contact_phone": "+15552223333",
-    },
 }
 ```
 
