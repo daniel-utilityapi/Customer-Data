@@ -33,8 +33,10 @@ This specification defines how utilities and other central entities ("Servers") 
     * [5.2. Listing Clients](#clients-list)  
     * [5.3. Modifying Clients](#clients-modify)  
 * [6. Client Settings API](#client-settings-api)  
-    * [6.1. Client Settings Object Format](#client-settings-format)  
-    * [6.2. Modifying Client Settings](#clients-settings-modify)  
+    * [6.1. Client Settings Object Format](#client-settings-format)
+    * [6.2. Profile Visibilities](#profile-visibilities)  
+    * [6.3. Button Styles](#button-styles)  
+    * [6.4. Modifying Client Settings](#clients-settings-modify)  
 * [7. Client Updates API](#client-updates-api)  
     * [7.1. Client Update Object Format](#client-update-format)  
     * [7.2. Client Update Types](#client-update-types)  
@@ -97,6 +99,7 @@ To ensure discoverability to the specified URL, this specification extends [CDSC
 As well as extending the [CDSC-WG1-01 Metadata Object Format](/specs/cdsc-wg1-01/#metadata-object-format) to require the following values:
 
 * `oauth_metadata` - _URL_ - (REQUIRED) Where Clients can obtain the Server's Authorization Server Metadata Object
+* `client_directory` - _URL_ - (REQUIRED) Where users may view a publicly available directory of Clients who have registered and set their Client Settings `profile_visibility` to `listed`
 
 In addition to requiring that the URL be included in the [CDSC-WG1-01 Metadata Object Format](/specs/cdsc-wg1-01/#metadata-object-format), Servers MAY also configure the URL such that it conforms to the default [Well-Known URI](#https://www.rfc-editor.org/rfc/rfc8414#section-7.3) format, which can increase interoperability beyond the above specified CDSC-WG1-01 extension.
 
@@ -237,45 +240,115 @@ This specification requires Clients and Servers follow the process described in 
 
 ### 4.2. Client Registration Response <a id="registration-response" href="#registration-response" class="permalink">🔗</a>
 
-This specification requires Servers follow the process described in OAuth's [Client Registration Response](https://www.rfc-editor.org/rfc/rfc7591#section-3.2), with the following modifications.
+This specification requires Servers follow the process described in OAuth's [Client Registration Response](https://www.rfc-editor.org/rfc/rfc7591#section-3.2), with the following modifications to OAuth's [Client Information Response](https://www.rfc-editor.org/rfc/rfc7591#section-3.2.1) object.
 
 * A `client_secret` value MUST be present in the response and be limited to `client_admin` scope use only.
 * The `scope` value MUST include the `client_admin` scope.
+* The `redirect_uris`, `grant_types`, and `response_types` values, if included, MUST be dynamically determined by the Server as a union of all of their respective values in the Client's [Scope Credentials](#scope-creds-format).
+* The `token_endpoint_auth_method` MUST always be set to `client_secret_basic`.
 
 Additionally, the following additional named values MUST be included in the response.
 
 * `cds_server_metadata` - _URL_ - (REQUIRED) Where the Client can find their registration-specific version of the [CDSC-WG1-01 Server Metadata](/specs/cdsc-wg1-01/). If the Client's CDSC server metadata is no different from the public CDSC server metadata, Servers MAY simply link to the public URL. If this metadata endpoint requires authentication, Servers MUST authenticate Client requests to this endpoint via Bearer access token obtained using OAuth's `client_credentials` grant with a scope of `client_admin`, and reject unauthenticated requests with a `401 Unauthorized` response code. Clients know that they must use a Bearer token when Servers return a `401` response code for this endpoint when the Client makes an unauthenticated request to the endpoint.
 * `cds_clients_api` - _URL_ - (REQUIRED) The base url for the [Clients API](#clients-api).
-* `cds_client_settings_api` - _URL_ - (REQUIRED) The base url for the [Client Settings API](#client-settings-api).
+* `cds_client_settings_api` - _URL_ - (REQUIRED) The url to a Client's Settings object for the [Client Settings API](#client-settings-api).
 * `cds_client_updates_api` - _URL_ - (REQUIRED) The base url for the [Client Updates API](#client-updates-api).
 * `cds_scope_credentials_api` - _URL_ - (REQUIRED) The base url for the [Scope Credentials API](#scope-creds-api).
 * `cds_grants_api` - _URL_ - (REQUIRED) The base url for the [Grants API](#grants-api).
 
+Upon valid registration, Servers MUST generate a [listed Scope Credential](#scope-creds-list) that is scoped to only `client_admin`, where the value of the Scope Credential's `client_secret` and the registration response `client_secret` are the same. Servers MUST also create [listed Scope Credentials](#scope-creds-list) that cover all additional valid scopes submitted, if any, where the Scope Credential objects are grouped by scopes that have the same `response_types`, `grant_types`, and `token_endpoint_auth_method` so as to maximize the number of scopes that may be accessed using the same `client_secret`.
+
+Severs MUST assign the submitted `redirect_uris` to all [Scope Credentials](#scope-creds-format) in the [Scope Credentials API](#scope-creds-api) that have `response_types`. Clients MAY subsequently manage which `redirect_uris` values are assigned to specific Scope Credentials using the [Scope Credentials API](#scope-creds-api).
+
+While Servers MAY support OAuth's [Dynamic Client Registration Management Protocol](https://www.rfc-editor.org/rfc/rfc7592) by including the `registration_client_uri` and `registration_access_token` values in their registration response, this specification requires that Servers MUST support the [Clients API](clients-api) by including the `cds_clients_api` value in the registration response as a way for Clients to manage their registrations.
+
 ## 5. Clients API <a id="clients-api" href="#clients-api" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+This specification requires Servers provide a set of Application Programming Interfaces (APIs) allowing Clients to view and edit their Client registrations. These APIs are authenticated using a Bearer `access_token` granted to Clients using OAuth's [`client_credentials` grant](https://www.rfc-editor.org/rfc/rfc6749#section-4.4) and the `client_secret` provided in the initial [Client Registration Response](#registration-response) or `client_secret` values from the [Scope Credentials API](#scope-creds-api) that include the `client_admin` scope.
 
 ### 5.1. Client Object Format <a id="client-format" href="#client-format" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+Client objects are formatted as JSON objects and contain named values. Client objects are required to follow the same object format as the [Client Registration Response](#registration-response), with the addition of the following named values.
+
+* `cds_client_uri` - _URL_ - (REQUIRED) Where to submit modifications using the Clients API [Modifying Clients](#clients-modify) functionality.
+
+Additionally, while the [Client Registration Response](#registration-response) MUST contain the `client_secret` field. Client objects returned from the Clients API MUST NOT include the `client_secret` or `client_secret_expires_at` fields. Clients MUST instead use the [Scope Credentials API](#scope-creds-api) to obtain `client_secret` values for use in other APIs.
 
 ### 5.2. Listing Clients <a id="clients-list" href="#clients-list" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+Clients may request to list Client objects that they have access to by making an HTTPS GET request, authenticated with a valid Bearer `access_token` scoped to the `client_admin` scope, to the `cds_clients_api` URL included in the [Client Registration Response](#registration-response). The Client listing request responses are formatted as JSON objects and contain the following named values.
+
+* `clients` - _Array[[ClientObject](#client-format)]_ - (REQUIRED) A list of Clients to which the requesting `access_token` is scoped to have access. If no Clients are accessible, this value is an empty list (`[]`). If more than 100 Clients are available to be listed, Servers MAY truncate the list and use the `next` value to link to the next segment of the list of Clients.
+* `next` - _URL_ or `null` - Where to request the next segment of the list of Clients. If no next segment exists (i.e. the requester is at the end of the list), this value is `null`.
+* `previous` - _URL_ or `null` - Where to request the previous segment of the list of Clients. If no previous segment exists (i.e. the requester is at the front of the list), this value is `null`.
 
 ### 5.3. Modifying Clients <a id="clients-modify" href="#clients-modify" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+This specification requires that the procedure to modify Clients MUST follow OAuth's [Client Update Request](https://www.rfc-editor.org/rfc/rfc7592) section in [Dynamic Client Registration Management Protocol](https://www.rfc-editor.org/rfc/rfc7592).
+
+The URL to be used to send `PUT` requests for updating clients MUST be the `cds_client_uri` provided in the [Client object](#client-format). If a Server has optionally implemented OAuth's [Dynamic Client Registration Management Protocol](https://www.rfc-editor.org/rfc/rfc7592), the value of `cds_client_uri` MUST be the same as `registration_client_uri`, and access tokens issued from either a `client_credentials` grant with the scope `client_admin` or the access token provided as the `registration_access_token` MUST be valid access tokens to interact with the client update endpoint.
+
+Servers MUST ignore updated values to the following fields and keep the Server-defined values set:
+
+* `client_id` - This value is immutable from when it was assigned upon Client registration.
+* `client_id_issued_at` - This value is immutable from when the Client initially registered.
+* `client_secret` - This value is NOT included in any Client object response, except for the initial Client registration request. Clients MUST use the [Scope Credentials API](#scope-creds-api) to manage client secrets.
+* `client_secret_expires_at` - This value is NOT included in any Client object response, except for the initial Client registration request. Clients MUST use the [Scope Credentials API](#scope-creds-api) to discover when a client secret will expire.
+* `redirect_uris` - This list is dynamically determined by the Server as a union of all `redirect_uris` values in the Client's [Scope Credentials](#scope-creds-format).
+* `grant_types` - This list is dynamically determined by the Server as a union of all `grant_types` values in the Client's [Scope Credentials](#scope-creds-format).
+* `response_types` - This list is dynamically determined by the Server as a union of all `response_types` values in the Client's [Scope Credentials](#scope-creds-format).
+* `token_endpoint_auth_method` - Always `client_secret_basic`.
+* `cds_server_metadata` - This is a URL set by the Server.
+* `cds_clients_api` - This is a URL set by the Server.
+* `cds_client_settings_api` - This is a URL set by the Server.
+* `cds_client_updates_api` - This is a URL set by the Server.
+* `cds_scope_credentials_api` - This is a URL set by the Server.
+* `cds_grants_api` - This is a URL set by the Server.
+
+All other fields MAY be submitted for updating by the Client. However, the Server MUST determine the validity of the submitted Client fields and reject with a 400 Bad Response if not all submitted fields are either the same as previously set, or invalid values for that field.
+
+If a Client does not include a field that is included in the Client object, this indicates that the Client wishes to reset the value of that field to the Server default.
+
+If a Server needs to asynchronously review and approve changes to any submitted Client object fields that have been submitted by the Client and are different from the current values, for valid update requests the Server MUST respond with a `202 Accepted` response, which indicates that the submission was accepted but not fully saved as completed yet. Any fields that have not been synchronously updated as part of the request and response MUST remain in the response as their previous values, and the Server MUST add one or more entries to the [listed Client Updates](#clients-updates-list) for the modified fields that need to be asynchronously reviewed and approved. Clients MAY then use the [Client Updates API](#client-updates-api) to track the asynchronous review of the modification request. If all submitted fields have been synchronously updated as part of the response, Servers MUST respond with a `200 OK`  response.
 
 ## 6. Client Settings API <a id="client-settings-api" href="#client-settings-api" class="permalink">🔗</a>
 
-<span style="background-color:yellow">TODO</span>
+This specification requires Servers provide a set of APIs allowing Clients to view and manage their Client settings. While the settings fields are directly related to a specific registered Client, they are not included in the Client object itself in order to allow Clients to make partial updates to their settings values using an HTTP PATCH request instead of a PUT request, which is required for the Client object updates to remain compatible with OAuth's [Dynamic Client Registration Management Protocol](https://www.rfc-editor.org/rfc/rfc7592).
+
+Like Clients APIs, the Client Settings APIs are authenticated using a Bearer `access_token` granted to Clients using OAuth's [`client_credentials` grant](https://www.rfc-editor.org/rfc/rfc6749#section-4.4) and the `client_secret` provided in the initial [Client Registration Response](#registration-response) or `client_secret` values from the [Scope Credentials API](#scope-creds-api) that include the `client_admin` scope.
 
 ### 6.1. Client Settings Object Format <a id="client-settings-format" href="#client-settings-format" class="permalink">🔗</a>
 
+Client Settings objects are formatted as JSON objects and contain the following named values:
+
+* `default_scope` - _string_ - (REQUIRED) A space-separated list of scopes the Server will use for OAuth's [Authorization Requests](https://www.rfc-editor.org/rfc/rfc6749#section-4.1.1) if the Client does not supply a `scope` or `authorization_details` parameter in the request.
+* `profile_visibility` - _[ProfileVisibility](#profile-visibilities)_ - (REQUIRED) Servers MUST provide a publicly accessible directory web interface of Clients that wish to be listed as registered with the Server. This setting is for Clients to manage the visibility of their registration in the public directly.
+* `profile_visibility_options` - _Array[[ProfileVisibility](#profile-visibilities)]_ - (REQUIRED) This is the list of available Profile Visibility values that the Client may choose to set as their `profile_visiblity`.
+* `profile_description` - _string_ - (REQUIRED) This is the description that the Client wishes to be displayed in their public directory entry, if `profile_visibility` is set to `autolist`, `unlisted`, or `listed`.
+* `profile_uri` - _URL_ - (REQUIRED) This is the URL that links directly to the Client's entry in the public directory, if `profile_visibility` is set to `autolist`, `unlisted`, or `listed`. If a Client has set their `profile_visibility` to `disabled`, the Server MUST respond to requests to this URL with a 404 Not Found response code.
+* `profile_slug` - _string_ - (OPTIONAL) For Servers that have the ability to partially customize the `profile_uri` string to be a more human-readable URL, this is the part of the URL that is customizeable by the Client.
+* `profile_button_uri` - _URL or `null`_ - (REQUIRED) In the profile listing for a Client, Servers MUST offer the ability for the Client to link users to a Client-provided URL. Servers MUST implement this as an anchor link styled as one of the specified [Button Styles](#button-styles) that opens a new tab via the `target="_blank"` anchor attribute for the user. If a Client sets this value to `null`, then the Server MUST NOT render the button link in the Client's directory profile entry.
+* `profile_button_style` - _[ButtonStyle](#button-styles)_ - (REQUIRED) This is the style of button the Server has set for the `profile_button_uri`.
+* `profile_button_style_options` - _Array[[ButtonStyle](#button-styles)]_ - (REQUIRED) This is a list of [Button Styles](#button-styles) available for the Client to set as their button style.
+* `profile_contact_name` - _string_ - (REQUIRED) This the contact name to be listed in the public directory entry for the Client.
+* `profile_contact_email` - _[E.123](https://en.wikipedia.org/wiki/E.123) email address_ - (REQUIRED) This the contact email to be listed in the public directory entry for the Client.
+* `profile_contact_phone` - _[E.123](https://en.wikipedia.org/wiki/E.123) international phone number or `null`_ - (REQUIRED) This the contact phone number to be listed in the public directory entry for the Client. If the Client sets this to `null`, the phone number field MUST be hidden on the Client's public directory profile entry by the Server.
+* `profile_contact_website` - _URL or `null`_ - (REQUIRED) This is a link to a website the Client wishes the user to visit for more information on how to contact them. If the Client sets this to `null`, the website field MUST be hidden on the Client's public directory profile entry by the Server.
+
+### 6.2. Profile Visibilities <a id="profile-visibilities" href="#profile-visibilities" class="permalink">🔗</a>
+
+Servers MUST implement a publicly available directory web interface of Client profiles that wish to be listed. Servers MUST make available the following Profile Visibility options in the `profile_visibility_options` list:
+
+* `listed` - The Client profile will be listed in the Server's public directory. If Servers are asynchronously reviewing Clients before approving production access to scopes, Servers MUST NOT include this option in the list of `profile_visibility_options` until the Server has completed and approve the Client for production access to at least one of the non-`client_admin` scopes, and instead include `autolist` in the list of `profile_visibility_options`.
+* `autolist` - If Servers are asynchronously reviewing Clients before approving production access to scopes, Servers MUST include this option in the list of `profile_visibility_options` until the Server has completed and approve the Client for production access to at least one of the non-`client_admin` scopes and NOT include `listed` in the list of `profile_visibility_options`. If the Client has set their `profile_visibility` to `autolist`, when the Server approves at least one non-`client_admin` scope for production use, the Server MUST automatically switch the Client's `profile_visibility` setting from `autolist` to `listed` and remove `autolist` from the list of `profile_visibility_options`. The behavior of this option is the same as the `unlisted` Profile Visibility option, with the exception that the Server MUST prominently display a banner message in the rendered profile to users that the Client has not yet been approved for production use.
+* `unlisted` - The Client profile will NOT be listed in the Server's public directory, but the `profile_uri` will be publicly visible when requested by a user directly and the response to the `profile_uri` MUST include a `X-robots-tag` response header with `noindex` in the header values or a `<meta name="robots" ...>` HTML head tag with `noindex` included in the `content` attribute.
+* `disabled` - The Server MUST return a 404 Not Found response code for requests made to the Client's `profile_uri` and MUST NOT list the Client in the public directory.
+
+### 6.3. Button Styles <a id="button-styles" href="#button-styles" class="permalink">🔗</a>
+
 <span style="background-color:yellow">TODO</span>
 
-### 6.2. Modifying Client Settings <a id="clients-settings-modify" href="#clients-settings-modify" class="permalink">🔗</a>
+### 6.4. Modifying Client Settings <a id="clients-settings-modify" href="#clients-settings-modify" class="permalink">🔗</a>
 
 <span style="background-color:yellow">TODO</span>
 
@@ -366,6 +439,8 @@ Additionally, the following additional named values MUST be included in the resp
 ## 12. Security Considerations <a id="security" href="#security" class="permalink">🔗</a>
 
 This specification describes a protocol by which a utility or other entity (a Server) can allow third parties (Clients) to register and obtain privileged access to the Server's offered capabilities and data. Because the functionality described in this specification enables access to private Server functionality and data, Servers MUST follow industry cybersecurity best practices when securing their implementations of this specification to prevent unintended or inadvertent access to privileged functionality or data to Clients who are not authorized. These best practices include requiring HTTPS for API endpoints using the latest widely adopted encryption standards, undergoing regular security audits and penetration tests, and internally requiring security-focused process controls and data handling procedures.
+
+<span style="background-color:yellow">TODO: Security considerations on public directory descriptions, buttons, etc.</span>
 
 ### 12.1. Restricted Access <a id="restricted-access" href="#restricted-access" class="permalink">🔗</a>
 
