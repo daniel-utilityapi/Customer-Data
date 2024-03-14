@@ -101,7 +101,7 @@ Content-Type: application/json;charset=UTF-8
 
     # CDS Extension - Required human-method alternative links
     "cds_human_registration": "https://demoutility.com/clients/register",
-    "cds_client_directory": "https://demoutility.com/clients/directory",
+    "cds_human_directory": "https://demoutility.com/clients/directory",
     "cds_test_accounts": "https://demoutility.com/docs/oauth/test-accounts",
 
     # CDS Extension - Required API endpoints
@@ -110,6 +110,7 @@ Content-Type: application/json;charset=UTF-8
     "cds_client_updates_api": "https://demoutility.com/api/client-updates",
     "cds_scope_credentials_api": "https://demoutility.com/api/scope-credentials",
     "cds_grants_api": "https://demoutility.com/api/grants",
+    "cds_directory_api": "https://demoutility.com/api/directory",
 
     # CDS Extension - scope descriptions and requirements
     "cds_scope_descriptions": {
@@ -222,13 +223,6 @@ Content-Type: application/json;charset=UTF-8
         ...
     ],
 }
-
-
-
-
-
-
-
 ```
 
 ## Dynamic Client Registration <a id="client-registration" href="#client-registration" class="permalink">🔗</a>
@@ -365,12 +359,16 @@ Authorization: Bearer <access_token>
 {
     "outstanding": [
         {
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/5555555555555",
+            "previous_uri": null,
             "type": "update_request",
             "read": true,
-            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/5555555555555",
-            "created_at": "2022-01-01T00:00:00Z",
-            "modified_at": "2022-01-01T00:00:00Z",
+            "creator": null,
+            "created": "2022-01-01T00:00:00Z",
+            "modified": "2022-01-01T00:00:00Z",
             "status": "pending",
+            "name": "",
+            "description": "",
             "updates_requested": [
                 {
                     "name": "client_name",
@@ -384,12 +382,14 @@ Authorization: Bearer <access_token>
     "outstanding_previous": null,
     "unread": [
         {
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/66666666666666",
+            "previous_uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/444444444444444",
             "type": "notification",
             "read": false,
-            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/66666666666666",
-            "created_at": "2022-01-01T00:00:00Z",
-            "modified_at": "2022-01-01T00:00:00Z",
-            "related_to": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/444444444444444",
+            "creator": null,
+            "created": "2022-01-01T00:00:00Z",
+            "modified": "2022-01-01T00:00:00Z",
+            "related_uri": "https://demoutility.com/blog/post/123123",
             "name": "Upcoming Maintenance Reminder",
             "description": "As a reminder, on 2024-01-01 from 12:00 UTC to 14:00 UTC, we will be down for scheduled maintenance",
         },
@@ -398,12 +398,14 @@ Authorization: Bearer <access_token>
     "unread_previous": null,
     "read": [
         {
+            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/444444444444444",
+            "previous_uri": null,
             "type": "notification",
             "read": true,
-            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/updates/444444444444444",
-            "created_at": "2022-01-01T00:00:00Z",
-            "modified_at": "2022-01-01T00:00:00Z",
-            "related_to": null,
+            "creator": null,
+            "created": "2022-01-01T00:00:00Z",
+            "modified": "2022-01-01T00:00:00Z",
+            "related_uri": "https://demoutility.com/blog/post/123123",
             "name": "Upcoming Maintenance",
             "description": "On 2024-01-01 from 12:00 UTC to 14:00 UTC, we will be down for scheduled maintenance",
         },
@@ -423,29 +425,40 @@ Authorization: Bearer <access_token>
 {
     "scope_credentials": [
         {
-            "id": "555555555",
+            "credential_id": "555555555",
             "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/scope-credentials/555555555",
+            "client_id": "aaaaaaaaaa",
+            "created": "2022-01-01T00:00:00Z",
+            "modified": "2022-01-01T00:00:00Z",
             "scope": "client_admin",
+            "authorization_details": [],
             "client_secret": "ccccccccccccccccccccccccccc",
-            "client_secret_expires_at": 2893276800,
-            "status": "live",
+            "client_secret_expires_at": null,
+            "status": "production_only",
             "status_options": [
-                "live",
+                "production_only",
+                "sandbox_only",
+                "disabled",
             ],
             "response_types": [],
             "grant_types": [
                 "client_credentials",
             ],
+            "token_endpoint_auth_method": "client_secret_basic",
         },
         {
-            "id": "6666666666",
+            "credential_id": "6666666666",
             "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/scope-credentials/6666666666",
+            "client_id": "aaaaaaaaaa",
+            "created": "2022-01-01T00:00:00Z",
+            "modified": "2022-01-01T00:00:00Z",
             "scope": "accounts ...",
+            "authorization_details": [],
             "client_secret": "dddddddddddddddddddddd",
             "client_secret_expires_at": 2893276800,
-            "status": "sandbox",
+            "status": "sandbox_only",
             "status_options": [
-                "sandbox",
+                "sandbox_only",
                 "disabled",
             ],
             "response_types": [
@@ -455,27 +468,11 @@ Authorization: Bearer <access_token>
                 "authorization_code",
                 "refresh_token",
             ],
-        },
-        {
-            "id": "7777777777",
-            "uri": "https://demoutility.com/api/clients/aaaaaaaaaa-01/scope-credentials/7777777777",
-            "scope": "accounts ...",
-            "status": "sandbox",
-            "status_options": [
-                "sandbox",
-                "disabled",
-            ],
-            "response_types": [
-                "code",
-            ],
-            "grant_types": [
-                "authorization_code",
-                "refresh_token",
-            ],
+            "token_endpoint_auth_method": "client_secret_basic",
         },
     ],
-    "scope_credentials_next": null,
-    "scope_credentials_previous": null,
+    "next": null,
+    "previous": null,
 }
 ```
 
@@ -489,29 +486,31 @@ Authorization: Bearer <access_token>
 {
     "grants": [
         {
-            # Default OAuth Token Introspection values
-            "active": true,
+            "grant_id": "8888888888",
+            "uri": "https://demoutility.com/api/clients/11111111/grants/8888888888",
+            "replacing": [],
+            "replaced_by": [],
+            "parent": null,
+            "children": [],
+            "created": "2022-01-01T00:00:00Z",
+            "modified": "2022-01-01T00:00:00Z",
+            "not_before": null,
+            "not_after": null,
+            "eta": null,
+            "expires": null,
+            "status": "active",
+            "client_id": "aaaaaaaaaa",
+            "cds_client_uri": "https://demoutility.com/api/clients/11111111",
             "scope": "client_admin",
-            "client_id": "11111111",
-            "token_type": "bearer",
-            "exp": 123456789,
-            "iat": 123456789,
-            ...
-
-            # Rich Authorization Request Extension
-            "authorization_details": [
-                {
-                    "type": "client_admin",
-                },
-            ],
-
-            # CDS Extension
-            "cds_id": "8888888888",
-            "cds_uri": "https://demoutility.com/api/clients/11111111/grants/8888888888",
+            "authorization_details": [],
+            "receipt_confirmations": [],
+            "eanbled_scope": "client_admin",
+            "enabled_authorization_details": [],
+            "sub_authorization_scopes": [],
         },
     ],
-    "grants_next": "https://demoutility.com/api/clients/11111111/grants?after=aaaaaaaaa",
-    "grants_previous": null,
+    "next": "https://demoutility.com/api/clients/11111111/grants?after=aaaaaaaaa",
+    "previous": null,
 }
 ```
 
